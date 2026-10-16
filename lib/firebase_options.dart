@@ -16,7 +16,7 @@ import 'package:flutter/foundation.dart'
 /// ```
 class DefaultFirebaseOptions {
   static String _requireApiKey(String value, String defineName) {
-    if (value.isEmpty) {
+    if (value.isEmpty || value.startsWith('REPLACE_')) {
       throw StateError(
         'Missing $defineName. Create .env.firebase.json from '
         '.env.firebase.example.json and provide the appropriate Firebase key.',

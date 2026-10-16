@@ -35,6 +35,8 @@ cp .env.firebase.example.json .env.firebase.json
 
 Restrict each Google API key to the correct app/platform and only the APIs it needs. The local `.env.firebase.json` file is ignored by Git. If you do not have access to this Firebase project, use your own Firebase project and update the Firebase app identifiers in `lib/firebase_options.dart`.
 
+If the required key is missing or still has the example placeholder, the app now displays a **Firebase setup required** message instead of a blank page. For Chrome, set `FIREBASE_API_KEY_WEB` to a valid key from the Firebase web app configuration.
+
 The app does not currently implement user sign-in. Firestore rules that require an authenticated user will therefore reject its requests. Set up rules appropriate for a controlled lab environment, and add authentication and restrictive rules before using this app with real data.
 
 ## Run in Visual Studio Code
@@ -104,8 +106,8 @@ There is currently no `test/` directory, so `flutter test` cannot run a test sui
 Latest local check:
 
 - `flutter analyze` — passed with no issues.
-- `flutter build web` — passed.
-- Browser smoke test — the dashboard UI starts, but Firestore returned `permission-denied` for the configured Firebase project. Live data requires valid project access and Firestore rules.
+- `flutter build web --dart-define-from-file=.env.firebase.json` — passed.
+- Browser smoke test — the web server responds, and the app displays a setup message because `FIREBASE_API_KEY_WEB` is still the example placeholder. After configuring a valid key, Firestore access/rules still need to be checked.
 - `flutter test` — not available yet because the project has no `test/` directory.
 
 ## Screenshot for a lab submission

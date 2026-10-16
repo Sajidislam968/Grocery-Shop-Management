@@ -7,11 +7,66 @@ import 'firebase_options.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } on StateError catch (error) {
+    runApp(FirebaseStartupErrorApp(message: error.message));
+    return;
+  } on FirebaseException catch (error) {
+    runApp(FirebaseStartupErrorApp(message: error.message ?? error.code));
+    return;
+  }
 
   runApp(const MachineHealthApp());
+}
+
+class FirebaseStartupErrorApp extends StatelessWidget {
+  final String message;
+
+  const FirebaseStartupErrorApp({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Firebase setup required',
+      home: Scaffold(
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.cloud_off_outlined,
+                    size: 56,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Firebase setup required',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  SelectableText(message, textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Set a valid web API key in .env.firebase.json, then '
+                    'restart with --dart-define-from-file=.env.firebase.json.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ============================================================
@@ -72,15 +127,11 @@ class DashboardScreen extends StatelessWidget {
 
       // REAL-TIME FIRESTORE LISTENER
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: FirebaseFirestore.instance
-            .collection('machines')
-            .snapshots(),
+        stream: FirebaseFirestore.instance.collection('machines').snapshots(),
 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
@@ -125,7 +176,6 @@ class DashboardScreen extends StatelessWidget {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-
                 // SUMMARY
                 Row(
                   children: [
@@ -162,42 +212,33 @@ class DashboardScreen extends StatelessWidget {
 
                 const Text(
                   'Machines',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 12),
 
                 // MACHINE LIST
-                ...machines.map(
-                  (doc) {
-                    final data = doc.data();
+                ...machines.map((doc) {
+                  final data = doc.data();
 
-                    final name =
-                        data['name'] ?? 'Unknown Machine';
+                  final name = data['name'] ?? 'Unknown Machine';
 
-                    final state =
-                        data['state'] ?? 'idle';
+                  final state = data['state'] ?? 'idle';
 
-                    final temperature =
-                        ((data['temperature'] ?? 0) as num)
-                            .toDouble();
+                  final temperature = ((data['temperature'] ?? 0) as num)
+                      .toDouble();
 
-                    final vibration =
-                        ((data['vibration'] ?? 0) as num)
-                            .toDouble();
+                  final vibration = ((data['vibration'] ?? 0) as num)
+                      .toDouble();
 
-                    return MachineCard(
-                      machineId: doc.id,
-                      name: name.toString(),
-                      state: state.toString(),
-                      temperature: temperature,
-                      vibration: vibration,
-                    );
-                  },
-                ),
+                  return MachineCard(
+                    machineId: doc.id,
+                    name: name.toString(),
+                    state: state.toString(),
+                    temperature: temperature,
+                    vibration: vibration,
+                  );
+                }),
               ],
             ),
           );
@@ -262,21 +303,14 @@ class MachineCard extends StatelessWidget {
 
         title: Text(
           name,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
 
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 6),
           child: Row(
             children: [
-              Icon(
-                stateIcon,
-                size: 18,
-                color: stateColor,
-              ),
+              Icon(stateIcon, size: 18, color: stateColor),
               const SizedBox(width: 5),
               Text(
                 state.toUpperCase(),
@@ -289,18 +323,13 @@ class MachineCard extends StatelessWidget {
           ),
         ),
 
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 18,
-        ),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
 
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => MachineDetailScreen(
-                machineId: machineId,
-              ),
+              builder: (_) => MachineDetailScreen(machineId: machineId),
             ),
           );
         },
@@ -316,10 +345,7 @@ class MachineCard extends StatelessWidget {
 class MachineDetailScreen extends StatelessWidget {
   final String machineId;
 
-  const MachineDetailScreen({
-    super.key,
-    required this.machineId,
-  });
+  const MachineDetailScreen({super.key, required this.machineId});
 
   @override
   Widget build(BuildContext context) {
@@ -340,45 +366,30 @@ class MachineDetailScreen extends StatelessWidget {
 
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-              ),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(
-              child: Text('Machine not found'),
-            );
+            return const Center(child: Text('Machine not found'));
           }
 
           final data = snapshot.data!.data()!;
 
-          final name =
-              data['name'] ?? 'Machine';
+          final name = data['name'] ?? 'Machine';
 
-          final state =
-              data['state'] ?? 'idle';
+          final state = data['state'] ?? 'idle';
 
-          final temperature =
-              ((data['temperature'] ?? 0) as num)
-                  .toDouble();
+          final temperature = ((data['temperature'] ?? 0) as num).toDouble();
 
-          final vibration =
-              ((data['vibration'] ?? 0) as num)
-                  .toDouble();
+          final vibration = ((data['vibration'] ?? 0) as num).toDouble();
 
           return ListView(
             padding: const EdgeInsets.all(20),
             children: [
-
               // MACHINE HEADER
               Card(
                 child: Padding(
@@ -403,9 +414,7 @@ class MachineDetailScreen extends StatelessWidget {
 
                       const SizedBox(height: 8),
 
-                      StatusChip(
-                        state: state.toString(),
-                      ),
+                      StatusChip(state: state.toString()),
                     ],
                   ),
                 ),
@@ -415,10 +424,7 @@ class MachineDetailScreen extends StatelessWidget {
 
               const Text(
                 'Sensor Readings',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 12),
@@ -444,10 +450,7 @@ class MachineDetailScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // HEALTH STATUS
-              HealthStatusCard(
-                temperature: temperature,
-                vibration: vibration,
-              ),
+              HealthStatusCard(temperature: temperature, vibration: vibration),
             ],
           );
         },
@@ -463,10 +466,7 @@ class MachineDetailScreen extends StatelessWidget {
 class StatusChip extends StatelessWidget {
   final String state;
 
-  const StatusChip({
-    super.key,
-    required this.state,
-  });
+  const StatusChip({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -481,20 +481,14 @@ class StatusChip extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         state.toUpperCase(),
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: color, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -528,11 +522,7 @@ class SensorCard extends StatelessWidget {
             CircleAvatar(
               radius: 28,
               backgroundColor: color.withValues(alpha: 0.12),
-              child: Icon(
-                icon,
-                color: color,
-                size: 30,
-              ),
+              child: Icon(icon, color: color, size: 30),
             ),
 
             const SizedBox(width: 16),
@@ -541,12 +531,7 @@ class SensorCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                    ),
-                  ),
+                  Text(title, style: const TextStyle(fontSize: 16)),
 
                   const SizedBox(height: 4),
 
@@ -583,25 +568,18 @@ class HealthStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool warning =
-        temperature > 80 || vibration > 5;
+    final bool warning = temperature > 80 || vibration > 5;
 
     return Card(
-      color: warning
-          ? Colors.red.shade50
-          : Colors.green.shade50,
+      color: warning ? Colors.red.shade50 : Colors.green.shade50,
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
           children: [
             Icon(
-              warning
-                  ? Icons.warning
-                  : Icons.check_circle,
-              color: warning
-                  ? Colors.red
-                  : Colors.green,
-                  size: 35,
+              warning ? Icons.warning : Icons.check_circle,
+              color: warning ? Colors.red : Colors.green,
+              size: 35,
             ),
 
             const SizedBox(width: 12),
@@ -614,9 +592,7 @@ class HealthStatusCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: warning
-                      ? Colors.red.shade700
-                      : Colors.green.shade700,
+                  color: warning ? Colors.red.shade700 : Colors.green.shade700,
                 ),
               ),
             ),
@@ -652,28 +628,16 @@ class StatusSummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: color,
-              size: 30,
-            ),
+            Icon(icon, color: color, size: 30),
 
             const SizedBox(height: 5),
 
             Text(
               '$count',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
 
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 12,
-              ),
-            ),
+            Text(title, style: const TextStyle(fontSize: 12)),
           ],
         ),
       ),
@@ -688,10 +652,7 @@ class StatusSummaryCard extends StatelessWidget {
 class EmptyMachineView extends StatelessWidget {
   final VoidCallback onAdd;
 
-  const EmptyMachineView({
-    super.key,
-    required this.onAdd,
-  });
+  const EmptyMachineView({super.key, required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -711,10 +672,7 @@ class EmptyMachineView extends StatelessWidget {
 
             const Text(
               'No machines found',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 8),
@@ -774,21 +732,15 @@ Future<void> addSampleMachines() async {
   for (final machine in machines) {
     final id = machine['id'] as String;
 
-    final ref = firestore
-        .collection('machines')
-        .doc(id);
+    final ref = firestore.collection('machines').doc(id);
 
-    batch.set(
-      ref,
-      {
-        'name': machine['name'],
-        'state': machine['state'],
-        'temperature': machine['temperature'],
-        'vibration': machine['vibration'],
-        'updatedAt': FieldValue.serverTimestamp(),
-      },
-      SetOptions(merge: true),
-    );
+    batch.set(ref, {
+      'name': machine['name'],
+      'state': machine['state'],
+      'temperature': machine['temperature'],
+      'vibration': machine['vibration'],
+      'updatedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 
   await batch.commit();
