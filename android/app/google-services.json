@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "278424305210",
+    "project_id": "grocery-shop-management-a4516",
+    "storage_bucket": "grocery-shop-management-a4516.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:278424305210:android:12c1daa0081484f0e23f03",
+        "android_client_info": {
+          "package_name": "com.example.grocery_shop_management"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REDACTED_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
