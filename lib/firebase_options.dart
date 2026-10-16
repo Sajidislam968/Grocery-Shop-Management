@@ -15,6 +15,16 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  static String _requireApiKey(String value, String defineName) {
+    if (value.isEmpty) {
+      throw StateError(
+        'Missing $defineName. Create .env.firebase.json from '
+        '.env.firebase.example.json and provide the appropriate Firebase key.',
+      );
+    }
+    return value;
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -40,8 +50,11 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'REDACTED_API_KEY',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: _requireApiKey(
+      const String.fromEnvironment('FIREBASE_API_KEY_WEB'),
+      'FIREBASE_API_KEY_WEB',
+    ),
     appId: '1:278424305210:web:ebcbae995914198ee23f03',
     messagingSenderId: '278424305210',
     projectId: 'grocery-shop-management-a4516',
@@ -50,23 +63,32 @@ class DefaultFirebaseOptions {
     measurementId: 'G-VK8QH9KEW9',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REDACTED_API_KEY',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: _requireApiKey(
+      const String.fromEnvironment('FIREBASE_API_KEY_ANDROID'),
+      'FIREBASE_API_KEY_ANDROID',
+    ),
     appId: '1:278424305210:android:12c1daa0081484f0e23f03',
     messagingSenderId: '278424305210',
     projectId: 'grocery-shop-management-a4516',
     storageBucket: 'grocery-shop-management-a4516.firebasestorage.app',
   );
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REDACTED_API_KEY',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: _requireApiKey(
+      const String.fromEnvironment('FIREBASE_API_KEY_IOS'),
+      'FIREBASE_API_KEY_IOS',
+    ),
     appId: '1:278424305210:ios:52b54baad289dddbe23f03',
     messagingSenderId: '278424305210',
     projectId: 'grocery-shop-management-a4516',
     storageBucket: 'grocery-shop-management-a4516.firebasestorage.app',
     iosBundleId: 'com.example.groceryShopManagement',
   );
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'REDACTED_API_KEY',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: _requireApiKey(
+      const String.fromEnvironment('FIREBASE_API_KEY_MACOS'),
+      'FIREBASE_API_KEY_MACOS',
+    ),
     appId: '1:278424305210:ios:52b54baad289dddbe23f03',
     messagingSenderId: '278424305210',
     projectId: 'grocery-shop-management-a4516',
@@ -74,8 +96,11 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.groceryShopManagement',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'REDACTED_API_KEY',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: _requireApiKey(
+      const String.fromEnvironment('FIREBASE_API_KEY_WINDOWS'),
+      'FIREBASE_API_KEY_WINDOWS',
+    ),
     appId: '1:278424305210:web:3c7c817e634c7a9de23f03',
     messagingSenderId: '278424305210',
     projectId: 'grocery-shop-management-a4516',

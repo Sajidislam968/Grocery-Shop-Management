@@ -24,10 +24,16 @@ The health warning is shown when temperature is above **80 °C** or vibration is
 
 - Flutter SDK (the project requires Dart `^3.12.2`).
 - Google Chrome for the tested web target.
-- Access to the Firebase project configured in `lib/firebase_options.dart`.
+- Access to a Firebase project and its restricted client API keys.
 - A Firestore database with rules that allow this app to read and write the `machines` collection.
 
-The Firebase configuration files identify a particular Firebase project. If you do not have access to it, configure your own Firebase project and regenerate the platform options before running the app. Do not use public Firestore read/write rules for a production app.
+The Firebase project identifiers are in `lib/firebase_options.dart`. API keys are not stored in tracked source files. Create a local config file from the example and replace its placeholders with the appropriate keys from your Firebase project:
+
+```bash
+cp .env.firebase.example.json .env.firebase.json
+```
+
+Restrict each Google API key to the correct app/platform and only the APIs it needs. The local `.env.firebase.json` file is ignored by Git. If you do not have access to this Firebase project, use your own Firebase project and update the Firebase app identifiers in `lib/firebase_options.dart`.
 
 The app does not currently implement user sign-in. Firestore rules that require an authenticated user will therefore reject its requests. Set up rules appropriate for a controlled lab environment, and add authentication and restrictive rules before using this app with real data.
 
@@ -37,13 +43,13 @@ Open this project folder (`grocery_shop_management`) in VS Code, then open **Ter
 
 ```bash
 flutter pub get
-flutter run -d chrome
+flutter run -d chrome --dart-define-from-file=.env.firebase.json
 ```
 
 If Flutter cannot launch Chrome automatically, start the web server instead:
 
 ```bash
-flutter run -d web-server --release --web-hostname 127.0.0.1 --web-port 8765
+flutter run -d web-server --release --web-hostname 127.0.0.1 --web-port 8765 --dart-define-from-file=.env.firebase.json
 ```
 
 Then open `http://127.0.0.1:8765` in a browser.
@@ -51,10 +57,12 @@ Then open `http://127.0.0.1:8765` in a browser.
 To create a deployable web build:
 
 ```bash
-flutter build web
+flutter build web --dart-define-from-file=.env.firebase.json
 ```
 
-Linux desktop is not configured in `lib/firebase_options.dart`; its Firebase options currently throw `UnsupportedError`. Use Chrome unless you add and configure Linux Firebase options. Android and iOS configuration files are present, but have not been verified as part of this project check.
+Linux desktop is not configured in `lib/firebase_options.dart`; its Firebase options currently throw `UnsupportedError`. Use Chrome unless you add and configure Linux Firebase options. Android is initialized from the Dart Firebase options, so a checked-in `google-services.json` is not required.
+
+> **API-key security:** Firebase client API keys are visible in built web and mobile apps; putting them in a local build config keeps them out of Git, but does not make them secret at runtime. Restrict them in Google Cloud Console. The previously committed keys remain visible in earlier Git history and must be rotated/restricted or revoked; deleting them from the latest version does not erase historical commits.
 
 ## Firestore data
 
@@ -88,7 +96,7 @@ Run these from the project directory:
 ```bash
 flutter analyze
 flutter test
-flutter build web
+flutter build web --dart-define-from-file=.env.firebase.json
 ```
 
 There is currently no `test/` directory, so `flutter test` cannot run a test suite until tests are added.
