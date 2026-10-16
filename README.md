@@ -43,7 +43,7 @@ flutter run -d chrome
 If Flutter cannot launch Chrome automatically, start the web server instead:
 
 ```bash
-flutter run -d web-server --web-hostname 127.0.0.1 --web-port 8765
+flutter run -d web-server --release --web-hostname 127.0.0.1 --web-port 8765
 ```
 
 Then open `http://127.0.0.1:8765` in a browser.
